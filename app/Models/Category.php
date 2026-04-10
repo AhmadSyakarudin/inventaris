@@ -8,7 +8,7 @@ class Category extends Model
 {
     protected $fillable = ['name', 'division_pj'];
 
-    public function item()
+    public function items()
 {
     return $this->hasMany(Item::class);
 }

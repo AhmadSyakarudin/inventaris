@@ -9,7 +9,7 @@ class CategoryController extends Controller
 {
     public function index()
     {
-        $categories = Category::withOut('items')->get();
+        $categories = Category::with('items')->get();
         return view('categories.index', compact('categories'));
     }
 
@@ -56,3 +56,4 @@ class CategoryController extends Controller
             ->with('success', 'Category deleted successfully');
     }
 }
+

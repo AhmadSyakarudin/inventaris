@@ -15,8 +15,10 @@ return new class extends Migration
             $table->id();
             $table->foreignId('category_id')->constrained()->cascadeOnDelete();
             $table->string('name');
-            $table->integer('total');
-            $table->integer('repair');
+            $table->integer('total')->default(0);
+            $table->integer('repair')->default(0);
+            $table->integer('lending')->default(0);
+            $table->integer('borrowed')->default(0);
             $table->timestamps();
         });
     }

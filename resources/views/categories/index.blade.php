@@ -2,7 +2,7 @@
 
 @section('content')
 
-<h1>Table Kategori</h1>
+<h1>Table Category</h1>
 
 <a href="{{ route('categories.create') }}" class="btn btn-primary mb-3">
     Tambah Category
@@ -31,7 +31,6 @@
                        class="btn btn-warning btn-sm">
                         Edit
                     </a>
-
                     <form action="{{ route('categories.destroy', $category->id) }}" 
                           method="POST" 
                           style="display:inline;">

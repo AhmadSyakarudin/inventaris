@@ -8,89 +8,81 @@ use Illuminate\Http\Request;
 
 class ItemController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
     public function index()
     {
-        //
-        $items = Item::all();
-        return redirect('items.index', compact('items'));
+        $items = Item::with('category')->get();
+        return view('items.index', compact('items'));
     }
 
-    /**
-     * Show the form for creating a new resource.
-     */
     public function create()
     {
-        //
         $categories = Category::all();
         return view('items.create', compact('categories'));
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
     public function store(Request $request)
     {
-        //
         $request->validate([
-            'category_id' => 'requested|exist|categories,id',
+            'category_id' => 'required|exists:categories,id',
             'name' => 'required|string|max:255',
-            'total' => 'requireed|integer|min:0',
-            'repair' => 'requireed|integer|min:0',
-            'lending' => 'requireed|integer|min:0',
-
+            'total' => 'required|integer|min:0',
+            'repair' => 'nullable|integer|min:0',
+            'lending' => 'nullable|integer|min:0',
+            'borrowed' => 'nullable|integer|min:0',
         ]);
 
-        Item::create($request->all());
-        return redirect()->route('items.index')->with('success', 'items created successfully');
+        Item::create([
+            'name' => $request->name,
+            'category_id' => $request->category_id,
+            'total' => $request->total,
+            'repair' => $request->input('repair', 0),
+            'lending' => $request->input('lending', 0),
+            'borrowed' => $request->input('borrowed', 0),
+        ]);
+
+        return redirect()->route('items.index')
+            ->with('success', 'Item created successfully');
     }
 
-    /**
-     * Display the specified resource.
-     */
-    public function show(Item $item)
-    {
-        //
-    }
-
-    /**
-     * Show the form for editing the specified resource.
-     */
     public function edit(Item $item)
-    {
-        //
-        $categories = Category::all();
-        return view('items.edit', compact('item', 'categories'));
-    }
+{
+    $categories = Category::all();
+    return view('items.edit', compact('item', 'categories'));
+}
 
-    /**
-     * Update the specified resource in storage.
-     */
     public function update(Request $request, Item $item)
-    {
-        //
-        $request->validate([
-            'category_id' => 'requested|exist|categories,id',
-            'name' => 'required|string|max:255',
-            'total' => 'requireed|integer|min:0',
-            'repair' => 'requireed|integer|min:0',
-            'lending' => 'requireed|integer|min:0',
+{
+    $request->validate([
+        'category_id' => 'required|exists:categories,id',
+        'name' => 'required|string|max:255',
+        'total' => 'required|integer|min:0',
+        'repair' => 'nullable|integer|min:0',
+        'lending' => 'nullable|integer|min:0',
+        'borrowed' => 'nullable|integer|min:0',
+    ]);
 
-        ]);
+    $repair = $request->input('repair', 0);
 
-        Item::update($request->all());
-        return redirect()->route('items.index')->with('success', 'items updated successfully');
-    }
+    $newTotal = $request->total - $repair;
 
-    /**
-     * Remove the specified resource from storage.
-     */
+    $item->update([
+        'name' => $request->name,
+        'category_id' => $request->category_id,
+        'total' => $newTotal,
+        'repair' => $repair,
+        'lending' => $request->input('lending', 0),
+        'borrowed' => $request->input('borrowed', 0),
+    ]);
+
+    return redirect()->route('items.index')
+        ->with('success', 'Item updated successfully');
+}
+
     public function destroy(Item $item)
     {
-        //
         $item->delete();
-        return redirect('items.index')->with('success', 'items deleted successfuly');
+
+        return redirect()->route('items.index')
+            ->with('success', 'Item deleted successfully');
     }
 }
