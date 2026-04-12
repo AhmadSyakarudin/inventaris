@@ -2,40 +2,72 @@
 
 @section('content')
 
-<h1>Tambah Item</h1>
+<div class="container">
 
-<form action="{{ route('items.store') }}" method="POST">
-    @csrf
+@if ($errors->any())
+<div class="alert alert-danger rounded-3">
+    <ul class="mb-0">
+        @foreach ($errors->all() as $error)
+            <li>{{ $error }}</li>
+        @endforeach
+    </ul>
+</div>
+@endif
 
-    <div class="mb-3">
-        <label>Nama</label>
-        <input type="text" name="name" class="form-control" required>
+<div class="row justify-content-center">
+<div class="col-md-8">
+
+    <div class="card shadow-sm border-0 rounded-4">
+        <div class="card-body p-4">
+
+            <h4 class="mb-4 fw-semibold">Add Item</h4>
+
+            <form action="{{ route('items.store') }}" method="POST">
+                @csrf
+
+                <div class="mb-3">
+                    <label class="form-label fw-medium">Name</label>
+                    <input type="text" name="name" value="{{ old('name') }}"
+                        class="form-control rounded-3" required>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label fw-medium">Category</label>
+                    <select name="category_id" class="form-select rounded-3" required>
+                        <option value="">-- select category --</option>
+                        @foreach ($categories as $category)
+                            <option value="{{ $category->id }}"
+                                {{ old('category_id') == $category->id ? 'selected' : '' }}>
+                                {{ $category->name }}
+                            </option>
+                        @endforeach
+                    </select>
+                </div>
+
+                <div class="mb-4">
+                    <label class="form-label fw-medium">Total</label>
+                    <input type="number" name="total" value="{{ old('total') }}"
+                        class="form-control rounded-3" required>
+                </div>
+
+                <div class="d-flex justify-content-between">
+                    <a href="{{ route('items.index') }}" class="btn btn-light border rounded-3 px-4">
+                        ← Back
+                    </a>
+
+                    <button class="btn btn-primary rounded-3 px-4">
+                        Save
+                    </button>
+                </div>
+
+            </form>
+
+        </div>
     </div>
 
-    <div class="mb-3">
-        <label>Category</label>
-        <select name="category_id" class="form-control" required>
-            <option value="">-- pilih category --</option>
-            @foreach ($categories as $category)
-                <option value="{{ $category->id }}">
-                    {{ $category->name }}
-                </option>
-            @endforeach
-        </select>
-    </div>
+</div>
+</div>
 
-    <div class="mb-3">
-        <label>Total</label>
-        <input type="number" name="total" class="form-control" required>
-    </div>
-
-    <div class="mb-3">
-        <label>Repair</label>
-        <input type="number" name="repair" class="form-control" value="0">
-    </div>
-
-    <button class="btn btn-success">Simpan</button>
-    <a href="{{ route('items.index') }}" class="btn btn-secondary">Kembali</a>
-</form>
+</div>
 
 @endsection

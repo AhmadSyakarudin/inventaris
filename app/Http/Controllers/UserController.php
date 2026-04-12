@@ -2,8 +2,11 @@
 
 namespace App\Http\Controllers;
 
+use App\Exports\UsersExport;
 use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use Maatwebsite\Excel\Facades\Excel;
 
 class UserController extends Controller
 {
@@ -28,24 +31,28 @@ class UserController extends Controller
         $request->validate([
             'name' => 'required|string|max:255',
             'email' => 'required|email|unique:users,email',
-            'password' => 'required|string|min:6|confirmed',
             'role' => 'required|in:admin,staff',
         ]);
 
-        $user = new User();
-        $user->name = $request->name;
-        $user->email = $request->email;
-        $user->password = bcrypt($request->password);
-        $user->role = $request->role;
-        $user->save();
+        $prefix = substr($request->email, 0, 4);
 
-        return redirect()->route('users.index')->with('success', 'User berhasil dibuat!');
-    }
+        $user = User::create([
+            'name' => $request->name,
+            'email' => $request->email,
+            'role' => $request->role,
+            'password' => bcrypt('temp'),
+            'password_changed' => false,
+        ]);
 
-    public function show($id)
-    {
-        $user = User::findOrFail($id);
-        return view('users.show', compact('user'));
+        $generatedPassword = $prefix . $user->id;
+
+        $user->update([
+            'password' => bcrypt($generatedPassword),
+        ]);
+
+        return redirect()->route('users.index', [
+            'role' => $request->role
+        ])->with('success', 'User berhasil dibuat! Password: ' . $generatedPassword);
     }
 
     public function edit($id)
@@ -59,20 +66,26 @@ class UserController extends Controller
         $request->validate([
             'name' => 'required|string|max:255',
             'email' => 'required|email|unique:users,email,' . $id,
-            'password' => 'nullable|string|min:6|confirmed',
+            'password' => 'nullable|string|min:6',
             'role' => 'required|in:admin,staff',
         ]);
 
         $user = User::findOrFail($id);
+
         $user->name = $request->name;
         $user->email = $request->email;
-        if ($request->password) {
-            $user->password = bcrypt($request->password);
-        }
         $user->role = $request->role;
+
+        if ($request->filled('password')) {
+            $user->password = bcrypt($request->password);
+            $user->password_changed = true;
+        }
+
         $user->save();
 
-        return redirect()->route('users.index')->with('success', 'User berhasil diupdate!');
+        return redirect()->route('users.index', [
+            'role' => $request->role
+        ])->with('success', 'User berhasil diupdate!');
     }
 
     public function destroy($id)
@@ -80,72 +93,66 @@ class UserController extends Controller
         $user = User::findOrFail($id);
         $user->delete();
 
-        return redirect()->route('users.index')->with('success', 'User berhasil dihapus!');
+        return redirect()->route('users.index')
+            ->with('success', 'User berhasil dihapus!');
     }
 
-    // Operator: Manage Staff Users
-    public function staffIndex()
+    public function resetPassword(User $user)
     {
-        $users = User::where('role', 'staff')->get();
-        return view('staff-users.index', compact('users'));
+        $password = substr($user->email, 0, 4) . $user->id;
+
+        $user->password = bcrypt($password);
+        $user->password_changed = false;
+        $user->save();
+
+        return redirect()->route('users.index', ['role' => $user->role])
+            ->with('success', 'Password berhasil direset. Password baru: ' . $password);
     }
 
-    public function staffCreate()
+    public function editSelf()
     {
-        return view('staff-users.create', ['user' => new User()]);
-    }
+        $user = Auth::user();
 
-    public function staffStore(Request $request)
-    {
-        $request->validate([
-            'name' => 'required|string|max:255',
-            'email' => 'required|email|unique:users,email',
-            'password' => 'required|string|min:6|confirmed',
+        return view('users.edit', [
+            'user' => $user,
+            'formAction' => route('users.update.self'),
+            'cancelRoute' => route('dashboard'),
+            'disableRole' => true,
         ]);
-
-        User::create([
-            'name' => $request->name,
-            'email' => $request->email,
-            'password' => bcrypt($request->password),
-            'role' => 'staff',
-        ]);
-
-        return redirect()->route('staff-users.index')->with('success', 'Staff user berhasil dibuat!');
     }
 
-    public function staffEdit(User $user)
+    public function export(Request $request)
     {
-        abort_if($user->role !== 'staff', 403);
-        return view('staff-users.edit', compact('user'));
+        $role = $request->query('role');
+
+        if (!in_array($role, ['admin', 'staff'])) {
+            abort(404);
+        }
+
+        return Excel::download(new UsersExport($role), "users_{$role}.xlsx");
     }
 
-    public function staffUpdate(Request $request, User $user)
+    public function updateSelf(Request $request)
     {
-        abort_if($user->role !== 'staff', 403);
+        /** @var User $user */
+        $user = Auth::user();
 
         $request->validate([
             'name' => 'required|string|max:255',
             'email' => 'required|email|unique:users,email,' . $user->id,
-            'password' => 'nullable|string|min:6|confirmed',
+            'password' => 'nullable|string|min:6',
         ]);
 
         $user->name = $request->name;
         $user->email = $request->email;
-        
+
         if ($request->filled('password')) {
             $user->password = bcrypt($request->password);
+            $user->password_changed = true;
         }
-        
+
         $user->save();
 
-        return redirect()->route('staff-users.index')->with('success', 'Staff user berhasil diupdate!');
-    }
-
-    public function staffDestroy(User $user)
-    {
-        abort_if($user->role !== 'staff', 403);
-        $user->delete();
-
-        return redirect()->route('staff-users.index')->with('success', 'Staff user berhasil dihapus!');
+        return redirect()->route('users.edit.self')->with('success', 'Profile berhasil diupdate!');
     }
 }

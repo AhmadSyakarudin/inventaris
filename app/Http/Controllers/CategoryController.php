@@ -4,12 +4,14 @@ namespace App\Http\Controllers;
 
 use App\Models\Category;
 use Illuminate\Http\Request;
+use App\Exports\CategoriesExport;
+use Maatwebsite\Excel\Facades\Excel;
 
 class CategoryController extends Controller
 {
     public function index()
     {
-        $categories = Category::with('items')->get();
+        $categories = Category::with('items')->paginate(5);
         return view('categories.index', compact('categories'));
     }
 
@@ -20,14 +22,15 @@ class CategoryController extends Controller
 
     public function store(Request $request)
     {
-        $request->validate([
+        $validated = $request->validate([
             'name' => 'required|string|max:255',
             'division_pj' => 'required|in:Tata Usaha,Sarpras,Tefa'
         ]);
 
-        Category::create($request->all());
+        Category::create($validated);
+
         return redirect()->route('categories.index')
-            ->with('success', 'Category created successfully');
+            ->with('success', 'Category berhasil ditambahkan');
     }
 
     public function edit(Category $category)
@@ -37,15 +40,15 @@ class CategoryController extends Controller
 
     public function update(Request $request, Category $category)
     {
-        $request->validate([
+        $validated = $request->validate([
             'name' => 'required|string|max:255',
             'division_pj' => 'required|in:Tata Usaha,Sarpras,Tefa'
         ]);
 
-        $category->update($request->all());
+        $category->update($validated);
 
         return redirect()->route('categories.index')
-            ->with('success', 'Category updated successfully');
+            ->with('success', 'Category berhasil diupdate');
     }
 
     public function destroy(Category $category)
@@ -53,7 +56,11 @@ class CategoryController extends Controller
         $category->delete();
 
         return redirect()->route('categories.index')
-            ->with('success', 'Category deleted successfully');
+            ->with('success', 'Category berhasil dihapus');
+    }
+
+    public function export()
+    {
+        return Excel::download(new CategoriesExport, 'categories.xlsx');
     }
 }
-

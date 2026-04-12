@@ -9,11 +9,15 @@ class AuthController extends Controller
 {
     public function showLogin()
     {
+        if (Auth::check()) {
+            return redirect()->route('dashboard');
+        }
+
         return view('auth.login');
     }
 
     public function login(Request $request)
-    {   
+    {
         $request->validate([
             'email' => 'required|email',
             'password' => 'required'
@@ -25,7 +29,7 @@ class AuthController extends Controller
             return redirect()->route('dashboard')
                 ->with('success', 'Welcome ' . ucfirst(Auth::user()->role));
         }
-          
+
         return back()->withErrors([
             'email' => 'Email atau Password salah'
         ]);

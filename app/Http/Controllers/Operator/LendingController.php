@@ -9,8 +9,6 @@ use App\Models\LendingItem;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
-// use App\Exports\LendingsExport;
-// use Maatwebsite\Excel\Facades\Excel;
 
 class LendingController extends Controller
 {

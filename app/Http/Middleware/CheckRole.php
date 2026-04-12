@@ -12,23 +12,17 @@ class CheckRole
     public function handle(Request $request, Closure $next, ...$roles): Response
     {
         if (!Auth::check()) {
-            return redirect('/login')->with('error', 'Silahkan login terlebih dahulu.');
+            return redirect()->route('login')
+                ->with('error', 'Silahkan login terlebih dahulu.');
         }
 
-        $userRole = Auth::user()->role;
+        $user = Auth::user();
 
-        if (in_array($userRole, $roles)) {
-            return $next($request); 
+        if (!in_array($user->role, $roles)) {
+            return redirect()->route('dashboard')
+                ->with('error', 'Anda tidak memiliki akses ke halaman tersebut.');
         }
 
-        if ($userRole === 'admin') {
-            return redirect('/admin/dashboard')->with('error', 'Anda tidak memiliki akses ke halaman tersebut.');
-        }
-
-        if ($userRole === 'operator') {
-            return redirect('/staff/dashboard')->with('error', 'Anda tidak memiliki akses ke halaman tersebut.');
-        }
-
-        return redirect('/')->with('error', 'Role tidak dikenali atau akses tidak diperbolehkan.');
+        return $next($request);
     }
 }

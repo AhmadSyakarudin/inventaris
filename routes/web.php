@@ -5,44 +5,48 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\ItemController;
-use App\Http\Controllers\Operator\LendingController;
+use App\Http\Controllers\LendingController;
 
 Route::get('/', function () {
     return view('landing_page');
 });
+
 Route::get('/login', [AuthController::class, 'showLogin'])->name('login');
 Route::post('/login', [AuthController::class, 'login']);
 Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 
 Route::middleware(['auth'])->group(function () {
+
     Route::get('/dashboard', function () {
-        $user = auth()->user();
-
-        if ($user->role === 'admin') {
-            return view('users.admin.dashboard');
-        }
-
-        if ($user->role === 'operator') {
-            return view('users.staff.dashboard');
-        }
-
-        return redirect('/login');
+        return view('dashboard');
     })->name('dashboard');
 
+    Route::get('users/edit', [UserController::class, 'editSelf'])->name('users.edit.self');
+    Route::put('users', [UserController::class, 'updateSelf'])->name('users.update.self');
+
     Route::middleware('role:admin')->group(function () {
+        Route::post('users/{user}/reset-password', [UserController::class, 'resetPassword'])
+            ->name('users.reset-password');
         Route::resource('users', UserController::class);
+        Route::get('users-export', [UserController::class, 'export'])->name('users.export');
         Route::resource('categories', CategoryController::class);
-        Route::resource('items', ItemController::class);
+        Route::get('categories-export', [CategoryController::class, 'export'])->name('categories.export');
+
+        Route::get('/items-export', [ItemController::class, 'export'])->name('items.export');
+        Route::resource('items', ItemController::class)->except(['index']);
     });
 
-    Route::middleware('role:operator')->group(function () {
-        Route::resource('lendings', LendingController::class);
-        Route::post('/lendings/{lending}/returned', [LendingController::class, 'returned'])->name('lendings.returned');
-        Route::get('/staff-users', [UserController::class, 'staffIndex'])->name('staff-users.index');
-        Route::get('/staff-users/create', [UserController::class, 'staffCreate'])->name('staff-users.create');
-        Route::post('/staff-users', [UserController::class, 'staffStore'])->name('staff-users.store');
-        Route::get('/staff-users/{user}/edit', [UserController::class, 'staffEdit'])->name('staff-users.edit');
-        Route::put('/staff-users/{user}', [UserController::class, 'staffUpdate'])->name('staff-users.update');
-        Route::delete('/staff-users/{user}', [UserController::class, 'staffDestroy'])->name('staff-users.destroy');
+    Route::get('items', [ItemController::class, 'index'])->name('items.index');
+    Route::get('lendings', [LendingController::class, 'index'])->name('lendings.index');
+    Route::get('lendings-export', [LendingController::class, 'export'])->name('lendings.export');
+
+    Route::middleware('role:staff')->group(function () {
+
+        Route::resource('lendings', LendingController::class)->except(['index']);
+
+        Route::post(
+            '/lendings/{lending}/returned',
+            [LendingController::class, 'returned']
+        )->name('lendings.returned');
     });
 });

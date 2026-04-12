@@ -1,52 +1,77 @@
 @extends('layouts.app')
 
 @section('content')
+    <div class="container">
 
-<h1>Table Category</h1>
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h4 class="fw-semibold mb-0">Table Category</h4>
 
-<a href="{{ route('categories.create') }}" class="btn btn-primary mb-3">
-    Tambah Category
-</a>
+            <div class=" d-flex gap-2">
+                <a href="{{ route('categories.export') }}" class="btn btn-success rounded-3 px-4">
+                    Export Excel
+                </a>
+                <a href="{{ route('categories.create') }}" class="btn btn-primary rounded-3 px-4">
+                    + Tambah Category
+                </a>
+            </div>
+        </div>
 
-<table class="table table-bordered">
-    <thead>
-        <tr>
-            <th>#</th>
-            <th>Name</th>
-            <th>Division PJ</th>
-            <th>Total Items</th>
-            <th>Action</th>
-        </tr>
-    </thead>
+        <div class="card border-0 shadow-sm rounded-4">
+            <div class="card-body p-0">
 
-    <tbody>
-        @foreach($categories as $index => $category)
-            <tr>
-                <td>{{ $index + 1 }}</td>
-                <td>{{ $category->name }}</td>
-                <td>{{ $category->division_pj }}</td>
-                <td>{{ $category->items->count() }}</td>
-                <td>
-                    <a href="{{ route('categories.edit', $category->id) }}" 
-                       class="btn btn-warning btn-sm">
-                        Edit
-                    </a>
-                    <form action="{{ route('categories.destroy', $category->id) }}" 
-                          method="POST" 
-                          style="display:inline;">
-                        @csrf
-                        @method('DELETE')
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th class="px-4">#</th>
+                                <th>Name</th>
+                                <th>Division PJ</th>
+                                <th>Total Items</th>
+                                <th class="text-center">Action</th>
+                            </tr>
+                        </thead>
 
-                        <button type="submit" 
-                                class="btn btn-danger btn-sm"
-                                onclick="return confirm('Apakah Anda Yakin Ingin Menghapus Category Ini??')">
-                            Delete
-                        </button>
-                    </form>
-                </td>
-            </tr>
-        @endforeach
-    </tbody>
-</table>
+                        <tbody>
+                            @foreach ($categories as $category)
+                                <tr>
+                                    <td class="px-4">{{ $categories->firstItem() + $loop->index }}</td>
+                                    <td class="fw-medium">{{ $category->name }}</td>
+                                    <td>{{ $category->division_pj }}</td>
+                                    <td>
+                                        <span class="badge bg-secondary">
+                                            {{ $category->items->count() }}
+                                        </span>
+                                    </td>
+                                    <td class="text-center">
+                                        <a href="{{ route('categories.edit', $category->id) }}"
+                                            class="btn btn-warning btn-sm rounded-3 px-3">
+                                            Edit
+                                        </a>
 
+                                        <form action="{{ route('categories.destroy', $category->id) }}" method="POST"
+                                            class="d-inline">
+                                            @csrf
+                                            @method('DELETE')
+
+                                            <button type="submit" class="btn btn-danger btn-sm rounded-3 px-3"
+                                                onclick="return confirm('Yakin hapus category ini?')">
+                                                Delete
+                                            </button>
+                                        </form>
+                                    </td>
+                                </tr>
+                            @endforeach
+                        </tbody>
+
+                    </table>
+                </div>
+
+                <div class="card-footer border-0 bg-white px-4 py-3">
+                    {{ $categories->links() }}
+                </div>
+
+            </div>
+        </div>
+
+    </div>
 @endsection

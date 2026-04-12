@@ -2,28 +2,63 @@
 
 @section('content')
 
-<h1>Tambah Category</h1>
+    <div class="container">
 
-<form action="{{ route('categories.store') }}" method="POST">
-    @csrf
+        @if ($errors->any())
+            <div class="alert alert-danger">
+                <ul class="mb-0">
+                    @foreach ($errors->all() as $error)
+                        <li>{{ $error }}</li>
+                    @endforeach
+                </ul>
+            </div>
+        @endif
 
-    <div class="mb-3">
-        <label>Nama</label>
-        <input type="text" name="name" class="form-control" required>
+        <div class="row justify-content-center">
+            <div class="col-md-8">
+
+                <div class="card shadow-sm border-0 rounded-4">
+                    <div class="card-body p-4">
+
+                        <h4 class="mb-4 fw-semibold">Add Category</h4>
+
+                        <form action="{{ route('categories.store') }}" method="POST">
+                            @csrf
+
+                            <div class="mb-3">
+                                <label class="form-label fw-medium">Category Name</label>
+                                <input type="text" name="name" class="form-control rounded-3"
+                                    placeholder="Enter category name..." required>
+                            </div>
+
+                            <div class="mb-4">
+                                <label class="form-label fw-medium">Division</label>
+                                <select name="division_pj" class="form-select rounded-3" required>
+                                    <option value="">-- select division --</option>
+                                    <option value="Tata Usaha">Tata Usaha</option>
+                                    <option value="Sarpras">Sarpras</option>
+                                    <option value="Tefa">Tefa</option>
+                                </select>
+                            </div>
+
+                            <div class="d-flex justify-content-between">
+                                <a href="{{ route('categories.index') }}" class="btn btn-light border rounded-3 px-4">
+                                    ← Back
+                                </a>
+
+                                <button type="submit" class="btn btn-primary rounded-3 px-4">
+                                    Save
+                                </button>
+                            </div>
+
+                        </form>
+
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
     </div>
-
-    <div class="mb-3">
-        <label>Division</label>
-        <select name="division_pj" class="form-control" required>
-            <option value="">-- pilih --</option>
-            <option value="Tata Usaha">Tata Usaha</option>
-            <option value="Sarpras">Sarpras</option>
-            <option value="Tefa">Tefa</option>
-        </select>
-    </div>
-
-    <button class="btn btn-success">Simpan</button>
-    <a href="{{ route('categories.index') }}" class="btn btn-secondary">Kembali</a>
-</form>
 
 @endsection
