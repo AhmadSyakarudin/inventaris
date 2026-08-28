@@ -38,7 +38,7 @@
                         <tbody>
                             @forelse ($items as $item)
                                 <tr>
-                                    <td class="px-4">{{ $loop->iteration }}</td>
+                                    <td class="px-4">{{ $items->firstItem() + $loop->index }}</td>
                                     <td>{{ $item->category->name ?? '-' }}</td>
                                     <td class="fw-medium">{{ $item->name }}</td>
                                     <td>{{ $item->total }}</td>
@@ -90,6 +90,10 @@
                             @endforelse
                         </tbody>
                     </table>
+                </div>
+                
+                <div class="card-footer border-0 bg-white px-4 py-3">
+                    {{ $items->links() }}
                 </div>
             </div>
         </div>

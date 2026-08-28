@@ -12,7 +12,7 @@ class ItemController extends Controller
 {
     public function index()
     {
-        $items = Item::with('category')->get();
+        $items = Item::with('category')->latest()->paginate(5);
         return view('items.index', compact('items'));
     }
 
@@ -83,10 +83,14 @@ class ItemController extends Controller
 
     public function destroy(Item $item)
     {
-        $item->delete();
-
-        return redirect()->route('items.index')
-            ->with('success', 'Item deleted successfully');
+        try {
+            $item->delete();
+            return redirect()->route('items.index')
+                ->with('success', 'Item deleted successfully');
+        } catch (\Illuminate\Database\QueryException $e) {
+            return redirect()->route('items.index')
+                ->with('error', 'Gagal menghapus! Barang ini sedang dipinjam dan tidak boleh dihapus.');
+        }
     }
 
     public function export()

@@ -1,0 +1,15 @@
+config:
+  target: "http://127.0.0.1:8000"
+  phases:
+    - duration: 10
+      arrivalRate: 5
+      name: "Warming up (5 user per detik, selama 10 detik)"
+    - duration: 20
+      arrivalRate: 20
+      name: "Stress Testing (20 user per detik, selama 20 detik)"
+
+scenarios:
+  - name: "User mengakses halaman login"
+    flow:
+      - get:
+          url: "/login"

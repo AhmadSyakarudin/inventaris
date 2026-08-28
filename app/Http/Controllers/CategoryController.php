@@ -11,7 +11,7 @@ class CategoryController extends Controller
 {
     public function index()
     {
-        $categories = Category::with('items')->paginate(5);
+        $categories = Category::with('items')->latest()->paginate(5);
         return view('categories.index', compact('categories'));
     }
 
@@ -53,10 +53,14 @@ class CategoryController extends Controller
 
     public function destroy(Category $category)
     {
-        $category->delete();
-
-        return redirect()->route('categories.index')
-            ->with('success', 'Category berhasil dihapus');
+        try {
+            $category->delete();
+            return redirect()->route('categories.index')
+                ->with('success', 'Category berhasil dihapus');
+        } catch (\Illuminate\Database\QueryException $e) {
+            return redirect()->route('categories.index')
+                ->with('error', 'Gagal menghapus! Kategori ini memiliki barang yang sedang dipinjam.');
+        }
     }
 
     public function export()
